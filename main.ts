@@ -7,7 +7,7 @@
 // Local run (outside the grader):
 //   mkdir -p out && MAKEFUN_BOT_DIR=. MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { copyFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const botDir = process.env.MAKEFUN_BOT_DIR ?? "/bot";
@@ -19,6 +19,14 @@ const source = join(botDir, "POST.json");
 const target = join(outputDir, "POST.json");
 
 try {
+  const parsed: unknown = JSON.parse(readFileSync(source, "utf8"));
+  if (
+    typeof parsed !== "object" ||
+    parsed === null ||
+    typeof (parsed as { url?: unknown }).url !== "string"
+  ) {
+    throw new Error("POST.json must be a JSON object with a url string");
+  }
   copyFileSync(source, target);
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
